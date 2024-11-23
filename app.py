@@ -1,94 +1,34 @@
 import streamlit as st
-import openai
+from openai import OpenAI
 
-# Configurar la página
-st.set_page_config(page_title="Chat Inteligente", page_icon="💬", layout="centered")
-
-# Estilizar la aplicación
-st.markdown(
-    """
-    <style>
-    .stChatMessage {
-        border-radius: 10px;
-        padding: 10px;
-        margin-bottom: 10px;
-    }
-    .user-message {
-        background-color: #d0f0c0; /* Verde claro */
-        border: 1px solid #a2d9a2;
-        text-align: left;
-    }
-    .assistant-message {
-        background-color: #f0f0f0; /* Gris claro */
-        border: 1px solid #cfcfcf;
-        text-align: left;
-    }
-    .header {
-        text-align: center;
-        font-size: 1.5rem;
-        margin-bottom: 20px;
-    }
-    .footer {
-        text-align: center;
-        font-size: 0.8rem;
-        color: #888888;
-        margin-top: 50px;
-    }
-    </style>
-    """,
-    unsafe_allow_html=True,
-)
-
-# Mostrar el encabezado
-st.title("💬 Chat Inteligente")
+st.set_page_config()
+# Show title and description.
+st.title("💬 Mi Chat inteligente ")
 st.write(
-    "Bienvenido a tu asistente virtual creado con OpenAI. Haz tus preguntas y recibe respuestas inteligentes."
+   "Bienvenido a tu asistente virtual creado con OpenAI. Haz tus preguntas y recibe respuestas inteligentes."
 )
+openai_api_key = st.secrets["api_key"] 
+# Create an OpenAI client.
+client = OpenAI(api_key=openai_api_key)
 
-# Obtener la clave de la API
-openai_api_key = st.secrets.get("api_key")
-if not openai_api_key:
-    st.error("La clave de la API no está configurada en los secretos.")
-    st.stop()
+prompt = st.chat_input("What is up?")
+if prompt==None:
+   st.stop()
 
-# Configurar cliente de OpenAI
-openai.api_key = openai_api_key
-
-# Entrada del usuario
-prompt = st.chat_input("Escribe algo para comenzar:")
-if not prompt:
-    st.stop()
-
-# Mostrar el mensaje del usuario
 with st.chat_message("user"):
-    st.markdown(f"<div class='stChatMessage user-message'>{prompt}</div>", unsafe_allow_html=True)
+   st.markdown(prompt)
 
-# Generar respuesta del asistente
-try:
-    response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
+# Generate a response using the OpenAI API.
+
+stream = client.chat.completions.create(
+        model="gpt-4o-mini",  
         messages=[
-            {"role": "system", "content": "Eres un asistente amigable y útil."},
-            {"role": "user", "content": prompt},
+            {"role": "system", "content": "You are an assistant."},
+            {"role": "user", "content": prompt}
         ],
         max_tokens=800,
-        temperature=0.7,
+        temperature=0,
     )
-    respuesta = response["choices"][0]["message"]["content"]
-
-    # Mostrar el mensaje del asistente
-    with st.chat_message("assistant"):
-        st.markdown(f"<div class='stChatMessage assistant-message'>{respuesta}</div>", unsafe_allow_html=True)
-except Exception as e:
-    st.error(f"Error al generar la respuesta: {str(e)}")
-
-# Pie de página
-st.markdown(
-    """
-    <div class="footer">
-        Aplicación desarrollada por <b>Inteligencia Artificial</b>. 🌟
-    </div>
-    """,
-    unsafe_allow_html=True,
-)
-
+respuesta = stream.choices[0].message.content
+with st.chat_message("assistant"):
+   st.write(respuesta)
