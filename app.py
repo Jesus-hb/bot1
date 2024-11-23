@@ -32,3 +32,11 @@ stream = client.chat.completions.create(
 respuesta = stream.choices[0].message.content
 with st.chat_message("assistant"):
    st.write(respuesta)
+   st.markdown(
+    """
+    <div class="footer">
+        Aplicación desarrollada por <b>Inteligencia Artificial</b>. 🌟
+    </div>
+    """,
+    unsafe_allow_html=True,
+)
